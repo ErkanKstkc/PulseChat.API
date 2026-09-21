@@ -1,0 +1,30 @@
+## .NET & Build Artifacts
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## IDEs
+.vs/
+.vscode/
+.idea/
+
+## Local Environment & Tooling
+.dotnet/
+*.log
+
+## Docker & Data volumes
+postgres_data/
+mongo_data/
+redis_data/
+rabbitmq_data/
+minio_data/
+
+## Sensitive Configuration
+appsettings.Local.json
+appsettings.Production.json

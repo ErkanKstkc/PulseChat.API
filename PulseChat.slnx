@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PulseChat.API/PulseChat.API.csproj" />
+    <Project Path="src/PulseChat.Application/PulseChat.Application.csproj" />
+    <Project Path="src/PulseChat.Domain/PulseChat.Domain.csproj" />
+    <Project Path="src/PulseChat.Infrastructure/PulseChat.Infrastructure.csproj" />
+    <Project Path="src/PulseChat.Workers/PulseChat.Workers.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PulseChat.UnitTests/PulseChat.UnitTests.csproj" />
+  </Folder>
+</Solution>
