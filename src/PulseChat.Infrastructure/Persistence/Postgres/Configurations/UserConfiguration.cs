@@ -14,7 +14,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.Email)
             .HasMaxLength(256)
-            .IsRequired();
+            .IsRequired()
+            .UseCollation("und-x-icu");
 
         builder.HasIndex(u => u.Email)
             .IsUnique();

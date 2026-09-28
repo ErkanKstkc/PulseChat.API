@@ -7,8 +7,10 @@ using PulseChat.API.Middlewares;
 using PulseChat.API.Services;
 using PulseChat.Application;
 using PulseChat.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using PulseChat.Infrastructure;
 using PulseChat.Infrastructure.Persistence.Mongo;
+using PulseChat.Infrastructure.Persistence.Postgres;
 using PulseChat.Infrastructure.Security;
 using PulseChat.Workers;
 
@@ -145,10 +147,16 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 
-// 9. Startup check: Ensure Mongo collections and indexes
+// 9. Startup check: Apply Postgres migrations & Ensure Mongo collections/indexes
 try
 {
     using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetService<PulseChatDbContext>();
+    if (dbContext != null && dbContext.Database.IsRelational())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+
     var mongoContext = scope.ServiceProvider.GetService<MongoDbContext>();
     if (mongoContext != null)
     {
@@ -157,7 +165,7 @@ try
 }
 catch (Exception ex)
 {
-    app.Logger.LogWarning(ex, "MongoDB indeksleme başlangıçta ertelendi (veritabanı henüz hazır olmayabilir).");
+    app.Logger.LogWarning(ex, "Veritabanı başlatma/migration işlemi başlangıçta ertelendi (veritabanı henüz hazır olmayabilir).");
 }
 
 app.Run();

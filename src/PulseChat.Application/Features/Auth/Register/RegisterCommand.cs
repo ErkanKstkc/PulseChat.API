@@ -5,6 +5,7 @@ using PulseChat.Application.Common.Interfaces;
 using PulseChat.Application.Features.Auth.Common;
 using PulseChat.Domain.Common;
 using PulseChat.Domain.Entities;
+using RefreshTokenEntity = PulseChat.Domain.Entities.RefreshToken;
 
 namespace PulseChat.Application.Features.Auth.Register;
 
@@ -55,10 +56,10 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         var emailNormalized = request.Email.Trim().ToLowerInvariant();
         var usernameNormalized = request.Username.Trim();
 
-        var existingUser = await _context.Users
+        var existingEmail = await _context.Users
             .AnyAsync(u => u.Email.ToLower() == emailNormalized, cancellationToken);
 
-        if (existingUser)
+        if (existingEmail)
         {
             return Result.Failure<AuthResponse>(ErrorCodes.EmailAlreadyExists, "Bu e-posta adresi zaten kullanımda.");
         }
@@ -86,7 +87,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         var accessToken = _jwtTokenGenerator.GenerateAccessToken(user);
         var refreshTokenValue = _jwtTokenGenerator.GenerateRefreshToken();
 
-        var refreshToken = new PulseChat.Domain.Entities.RefreshToken
+        var refreshToken = new RefreshTokenEntity
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,

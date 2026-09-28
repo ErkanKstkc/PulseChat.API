@@ -5,6 +5,7 @@ using PulseChat.Application.Common.Interfaces;
 using PulseChat.Application.Features.Auth.Common;
 using PulseChat.Domain.Common;
 using PulseChat.Domain.Entities;
+using RefreshTokenEntity = PulseChat.Domain.Entities.RefreshToken;
 
 namespace PulseChat.Application.Features.Auth.Login;
 
@@ -61,7 +62,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var accessToken = _jwtTokenGenerator.GenerateAccessToken(user);
         var refreshTokenValue = _jwtTokenGenerator.GenerateRefreshToken();
 
-        var refreshToken = new PulseChat.Domain.Entities.RefreshToken
+        var refreshToken = new RefreshTokenEntity
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,

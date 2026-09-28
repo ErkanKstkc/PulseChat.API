@@ -10,6 +10,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\PulseChat.Application\PulseChat.Application.csproj" />
     <ProjectReference Include="..\..\src\PulseChat.Domain\PulseChat.Domain.csproj" />
+    <ProjectReference Include="..\..\src\PulseChat.Infrastructure\PulseChat.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\PulseChat.Workers\PulseChat.Workers.csproj" />
   </ItemGroup>
 
   <ItemGroup>
