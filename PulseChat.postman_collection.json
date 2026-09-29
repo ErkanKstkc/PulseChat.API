@@ -1,0 +1,462 @@
+{
+	"info": {
+		"_postman_id": "7a3e9c51-b8f4-41d3-92f7-pulsechat-col",
+		"name": "PulseChat API",
+		"description": "PulseChat Gerçek Zamanlı Mesajlaşma Sistemi REST API Koleksiyonu.\n\nBu koleksiyon otomatik token yönetimi (Auto-Token Propagation) içerir:\n- `Register` veya `Login` istekleri çalıştığında gelen JWT `accessToken` ve `refreshToken` otomatik olarak ortam değişkenlerine (`{{accessToken}}`) atanır.\n- Sonraki tüm istekler otomatik olarak `Bearer {{accessToken}}` ile yetkilendirilir.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "1. Auth",
+			"item": [
+				{
+					"name": "Register (Kayıt Ol)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Register successful and returned tokens\", function () {",
+									"    pm.expect(jsonData.isSuccess).to.eql(true);",
+									"    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+									"});",
+									"",
+									"if (jsonData.isSuccess && jsonData.data) {",
+									"    pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
+									"    pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+									"    pm.environment.set(\"userId\", jsonData.data.user.id);",
+									"    pm.environment.set(\"username\", jsonData.data.user.username);",
+									"    console.log(\"Tokens successfully saved to environment!\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testuser@pulsechat.com\",\n  \"username\": \"testuser\",\n  \"password\": \"P@ssword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Yeni bir kullanıcı kaydı oluşturur ve otomatik oturum açarak JWT Access Token ile Refresh Token üretir."
+					},
+					"response": []
+				},
+				{
+					"name": "Login (Giriş Yap)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Login successful\", function () {",
+									"    pm.expect(jsonData.isSuccess).to.eql(true);",
+									"    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+									"});",
+									"",
+									"if (jsonData.isSuccess && jsonData.data) {",
+									"    pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
+									"    pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+									"    pm.environment.set(\"userId\", jsonData.data.user.id);",
+									"    pm.environment.set(\"username\", jsonData.data.user.username);",
+									"    console.log(\"Logged in and tokens updated!\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"emailOrUsername\": \"testuser\",\n  \"password\": \"P@ssword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "E-posta veya kullanıcı adı ile giriş yapar ve yeni token çifti üretir."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token (Oturum Yenile)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.isSuccess && jsonData.data) {",
+									"    pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
+									"    pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+									"    console.log(\"Token rotation succeeded!\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/refresh",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Refresh Token Rotation standardı ile süresi biten Access Token'ı yeniler."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Me (Profil Bilgim)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						},
+						"description": "O an giriş yapmış olan kullanıcının profil detaylarını (Id, Email, Username, Avatar) getirir."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Chat (Sohbet & Odalar)",
+			"item": [
+				{
+					"name": "Create Room (Oda Oluştur)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Room created successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.isSuccess && jsonData.data) {",
+									"    pm.environment.set(\"roomId\", jsonData.data.id);",
+									"    console.log(\"Created roomId saved to environment: \" + jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": 1,\n  \"title\": \"Genel Sohbet Odası\",\n  \"avatarUrl\": null,\n  \"memberIds\": [\n    \"{{userId}}\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/rooms",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"rooms"
+							]
+						},
+						"description": "MongoDB üzerinde yeni bir sohbet odası kurar. Odayı kuran kişi otomatik Admin rolü alır."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Rooms (Kullanıcının Odaları)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/rooms",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"rooms"
+							]
+						},
+						"description": "Giriş yapan kullanıcının üyesi olduğu tüm sohbet odalarını döner."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Room Messages (Oda Mesaj Geçmişi)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/rooms/{{roomId}}/messages?limit=50",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"rooms",
+								"{{roomId}}",
+								"messages"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Çekilecek mesaj sayısı"
+								},
+								{
+									"key": "before",
+									"value": "2026-09-29T12:00:00Z",
+									"disabled": true,
+									"description": "Cursor sayfalama için zaman filtresi"
+								}
+							]
+						},
+						"description": "Belirtilen odadaki geçmiş mesajları cursor-based olarak listeler. Odaya üye olunması zorunludur."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Friendships (Arkadaşlık)",
+			"item": [
+				{
+					"name": "Send Friend Request (İstek Gönder)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.isSuccess && jsonData.data) {",
+									"    pm.environment.set(\"friendshipId\", jsonData.data);",
+									"    console.log(\"Saved friendshipId: \" + jsonData.data);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"targetUsername\": \"ahmet\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/friendship/request",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"friendship",
+								"request"
+							]
+						},
+						"description": "Kullanıcı adını belirterek hedef kullanıcıya bekleyen (Pending) statüsünde arkadaşlık isteği gönderir."
+					},
+					"response": []
+				},
+				{
+					"name": "Respond Friend Request (İsteği Yanıtla)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"friendshipId\": \"{{friendshipId}}\",\n  \"accept\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/friendship/respond",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"friendship",
+								"respond"
+							]
+						},
+						"description": "Gelen arkadaşlık isteğini kabul eder (accept: true) veya reddederek siler (accept: false)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Friends (Arkadaş Listesi)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/friendship",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"friendship"
+							]
+						},
+						"description": "Kullanıcının kabul edilmiş (Accepted) tüm arkadaşlarını listeler."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Media (MinIO Depolama)",
+			"item": [
+				{
+					"name": "Upload Media (Dosya Yükle)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/media/upload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"media",
+								"upload"
+							]
+						},
+						"description": "MinIO S3 kovanına avatar veya sohbet eki dosyası yükler (Maks 25MB). Yüklenen dosyanın URL yolunu döner."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
+}
