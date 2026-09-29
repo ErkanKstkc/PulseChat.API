@@ -7,6 +7,11 @@ namespace PulseChat.API.Controllers;
 
 public record MediaUploadResponse(string Url, string FileName, long Size);
 
+public class UploadMediaRequest
+{
+    public IFormFile? File { get; set; }
+}
+
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -24,8 +29,9 @@ public class MediaController : ControllerBase
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(Result<MediaUploadResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Result<MediaUploadResponse>), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Upload([FromForm] IFormFile file)
+    public async Task<IActionResult> Upload([FromForm] UploadMediaRequest request)
     {
+        var file = request.File;
         if (file == null || file.Length == 0)
         {
             return BadRequest(Result.Failure<MediaUploadResponse>(ErrorCodes.ValidationFailed, "Dosya seçilmedi."));
