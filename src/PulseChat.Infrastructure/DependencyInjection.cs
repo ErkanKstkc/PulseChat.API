@@ -22,7 +22,7 @@ public static class DependencyInjection
     {
         // 1. PostgreSQL EF Core
         var postgresConnection = configuration.GetConnectionString("Postgres")
-            ?? "Host=localhost;Port=5432;Database=pulsechat_db;Username=pulsechat_user;Password=pulsechat_password";
+            ?? "Host=localhost;Port=5433;Database=pulsechat_db;Username=pulsechat_user;Password=pulsechat_password";
 
         services.AddDbContext<PulseChatDbContext>(options =>
             options.UseNpgsql(postgresConnection));
