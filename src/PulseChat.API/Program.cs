@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -28,11 +29,22 @@ builder.Services.AddInfrastructure(builder.Configuration, bus =>
 // 3. Web API Services & HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 
-// 4. SignalR Real-Time Communication
-builder.Services.AddSignalR();
+// 4. SignalR Real-Time Communication with Enum support & Detailed Errors
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+})
+.AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 // 5. JWT Authentication & WebSocket Query String Extraction
 var jwtSection = builder.Configuration.GetSection(JwtSettings.SectionName);

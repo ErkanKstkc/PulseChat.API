@@ -114,63 +114,71 @@ public class ChatHub : Hub
 
     public async Task<Result> SendMessage(SendMessagePayload payload)
     {
-        var senderId = CurrentUserId;
-        if (senderId == Guid.Empty)
+        try
         {
-            return Result.Failure(ErrorCodes.Unauthorized, "Kimlik doğrulaması gereklidir.");
+            var senderId = CurrentUserId;
+            if (senderId == Guid.Empty)
+            {
+                return Result.Failure(ErrorCodes.Unauthorized, "Kimlik doğrulaması gereklidir.");
+            }
+
+            // 1. Idempotency check via Redis
+            var isNewMessage = await _idempotencyService.TryAcquireMessageLockAsync(payload.ClientMessageId);
+            if (!isNewMessage)
+            {
+                _logger.LogWarning("Duplicate message ignored for ClientMessageId: {ClientMessageId}", payload.ClientMessageId);
+                return Result.Success(); // Mükerrer istek sessizce onaylanır
+            }
+
+            // 2. Room membership check
+            var isMember = await _chatRepository.IsUserInRoomAsync(payload.RoomId, senderId);
+            if (!isMember)
+            {
+                return Result.Failure(ErrorCodes.NotRoomMember, "Bu odaya mesaj gönderme yetkiniz yok.");
+            }
+
+            var createdAt = DateTime.UtcNow;
+
+            var messageBroadcast = new
+            {
+                RoomId = payload.RoomId,
+                SenderId = senderId,
+                SenderUsername = Context.User?.Identity?.Name ?? "User",
+                ClientMessageId = payload.ClientMessageId,
+                Type = payload.Type.ToString(),
+                Content = payload.Content,
+                MediaUrl = payload.MediaUrl,
+                CreatedAt = createdAt
+            };
+
+            // 3. Live In-Memory Delivery (SignalR Group Broadcast)
+            await Clients.Group(payload.RoomId).SendAsync("ReceiveMessage", messageBroadcast);
+
+            // 4. Delivery ACK to Sender
+            await Clients.Caller.SendAsync("MessageDeliveredAck", new
+            {
+                ClientMessageId = payload.ClientMessageId,
+                DeliveredAt = createdAt
+            });
+
+            // 5. Asynchronous Event Publishing to RabbitMQ
+            await _publishEndpoint.Publish(new MessageCreatedEvent(
+                payload.RoomId,
+                senderId,
+                payload.ClientMessageId,
+                payload.Type,
+                payload.Content,
+                payload.MediaUrl,
+                createdAt
+            ));
+
+            return Result.Success();
         }
-
-        // 1. Idempotency check via Redis
-        var isNewMessage = await _idempotencyService.TryAcquireMessageLockAsync(payload.ClientMessageId);
-        if (!isNewMessage)
+        catch (Exception ex)
         {
-            _logger.LogWarning("Duplicate message ignored for ClientMessageId: {ClientMessageId}", payload.ClientMessageId);
-            return Result.Success(); // Mükerrer istek sessizce onaylanır
+            _logger.LogError(ex, "Error executing SendMessage for RoomId: {RoomId}, ClientMessageId: {ClientMessageId}", payload?.RoomId, payload?.ClientMessageId);
+            throw;
         }
-
-        // 2. Room membership check
-        var isMember = await _chatRepository.IsUserInRoomAsync(payload.RoomId, senderId);
-        if (!isMember)
-        {
-            return Result.Failure(ErrorCodes.NotRoomMember, "Bu odaya mesaj gönderme yetkiniz yok.");
-        }
-
-        var createdAt = DateTime.UtcNow;
-
-        var messageBroadcast = new
-        {
-            RoomId = payload.RoomId,
-            SenderId = senderId,
-            SenderUsername = Context.User?.Identity?.Name,
-            ClientMessageId = payload.ClientMessageId,
-            Type = payload.Type.ToString(),
-            Content = payload.Content,
-            MediaUrl = payload.MediaUrl,
-            CreatedAt = createdAt
-        };
-
-        // 3. Live In-Memory Delivery (SignalR Group Broadcast)
-        await Clients.Group(payload.RoomId).SendAsync("ReceiveMessage", messageBroadcast);
-
-        // 4. Delivery ACK to Sender
-        await Clients.Caller.SendAsync("MessageDeliveredAck", new
-        {
-            ClientMessageId = payload.ClientMessageId,
-            DeliveredAt = createdAt
-        });
-
-        // 5. Asynchronous Event Publishing to RabbitMQ
-        await _publishEndpoint.Publish(new MessageCreatedEvent(
-            payload.RoomId,
-            senderId,
-            payload.ClientMessageId,
-            payload.Type,
-            payload.Content,
-            payload.MediaUrl,
-            createdAt
-        ));
-
-        return Result.Success();
     }
 
     public async Task SendTyping(string roomId)
