@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Extensions;
 using Swashbuckle.AspNetCore.Swagger;
 using Xunit;
 
@@ -18,7 +19,15 @@ public class SwaggerTests
         services.AddControllers()
             .AddApplicationPart(typeof(PulseChat.API.Controllers.MediaController).Assembly);
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            {
+                Title = "PulseChat.API",
+                Version = "v1",
+                Description = "PulseChat REST API"
+            });
+        });
 
         var serviceProvider = services.BuildServiceProvider();
         var swaggerProvider = serviceProvider.GetRequiredService<ISwaggerProvider>();
@@ -28,5 +37,13 @@ public class SwaggerTests
         var doc = swaggerProvider.GetSwagger("v1");
         doc.Should().NotBeNull();
         doc.Paths.Should().ContainKey("/api/Media/upload");
+
+        using var stringWriter = new StringWriter();
+        var openApiWriter = new Microsoft.OpenApi.Writers.OpenApiJsonWriter(stringWriter);
+        doc.SerializeAsV3(openApiWriter);
+        var json = stringWriter.ToString();
+
+        var frontendPath = @"C:\Projeler\PulseChat\PulseChat.Frontend\swagger.json";
+        File.WriteAllText(frontendPath, json);
     }
 }

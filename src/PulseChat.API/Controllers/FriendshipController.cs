@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PulseChat.Application.Common.Interfaces;
 using PulseChat.Application.Features.Friendships.Common;
 using PulseChat.Application.Features.Friendships.GetFriends;
+using PulseChat.Application.Features.Friendships.GetPending;
 using PulseChat.Application.Features.Friendships.RespondRequest;
 using PulseChat.Application.Features.Friendships.SendRequest;
 using PulseChat.Domain.Common;
@@ -77,6 +78,20 @@ public class FriendshipController : ControllerBase
         }
 
         var result = await _mediator.Send(new GetFriendsQuery(userId.Value));
+        return Ok(result);
+    }
+
+    [HttpGet("pending")]
+    [ProducesResponseType(typeof(Result<List<FriendDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPendingRequests()
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue)
+        {
+            return Unauthorized();
+        }
+
+        var result = await _mediator.Send(new GetPendingFriendRequestsQuery(userId.Value));
         return Ok(result);
     }
 }
