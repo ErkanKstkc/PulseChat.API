@@ -199,4 +199,17 @@ Ajan her zaman aşağıdaki 4 aşamalı etkileşim sürecini işletmek zorundad�
    - Kod yazıldıktan sonra kullanıcıya yalnızca özet geçilmeyecek; **hangi dosyada, hangi satırların ne amaçla değiştirildiği veya eklendiği, neden bu yöntemin seçildiği** detaylı şekilde izah edilecektir.
    - Körlemesine veya açıklamasız kod teslimi kesinlikle yasaktır.
 
+---
+
+## 9. Git Commit ve Push Onay Protokolü (Explicit Commit & Push Approval)
+
+> [!IMPORTANT]
+> **Tavizsiz Kural:** Kullanıcıya sormadan ve açık onay almadan **kesinlikle `git commit` ve `git push` yapılamaz.**
+
+Ajan Git işlemlerinde şu adımlara tavizsiz uymak zorundadır:
+1. **Commit Başlığını ve Mesajını Önceden Sun:** Yapılan değişiklikler bittikten sonra atılması önerilen commit başlığını ve detaylı açıklama mesajını **Türkçe** olarak kullanıcıya göster.
+2. **Kullanıcı Onayı Bekle:** Kullanıcı commit mesajını ve içeriğini inceleyip açıkça onay vermeden kesinlikle commit ve push komutu çalıştırılamaz.
+3. **Onay Sonrası Gönderim:** Yalnızca kullanıcı onay verdikten sonra sırasıyla commit ve push işlemi gerçekleştirilir.
+
+
 
