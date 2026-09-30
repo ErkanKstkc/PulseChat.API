@@ -189,3 +189,14 @@ Ajan her zaman aşağıdaki 4 aşamalı etkileşim sürecini işletmek zorundad�
 3. **Plan Çıkar (Propose Action Plan):** Birlikte varılan mutabakat doğrultusunda adım adım, net bir uygulama planı oluştur ve kullanıcıya sun.
 4. **Kullanıcı Onayını Bekle (Await Explicit Approval):** Kod yazımına veya dosya değişikliğine **yalnızca kullanıcı bu planı inceleyip açıkça onay verdikten sonra** başla. Kullanıcı onayı olmadan kesinlikle kod düzenlemesi yapılamaz.
 
+---
+
+## 8. Görev Bölme ve Şeffaf Kod Açıklama Standardı (Granular Tasks & Code Transparency)
+
+1. **Mikro Görevlere Bölme (Granular Task Decomposition):**
+   - Yapılacak tüm işler ve geliştirmeler doğrudan tek bir devasa adımda ele alınamaz; küçük, bağımsız, anlaşılır ve tek tek test edilebilir mikro görevlere (micro-tasks) bölünecektir.
+2. **Dosya Dosya, Satır Satır Açıklama (Line-by-Line Code Transparency):**
+   - Kod yazıldıktan sonra kullanıcıya yalnızca özet geçilmeyecek; **hangi dosyada, hangi satırların ne amaçla değiştirildiği veya eklendiği, neden bu yöntemin seçildiği** detaylı şekilde izah edilecektir.
+   - Körlemesine veya açıklamasız kod teslimi kesinlikle yasaktır.
+
+
