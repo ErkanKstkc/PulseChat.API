@@ -28,3 +28,9 @@ minio_data/
 ## Sensitive Configuration
 appsettings.Local.json
 appsettings.Production.json
+
+## Load Testing
+loadtests/jmeter/
+loadtests/results/
+loadtests/reports/
+*.jtl
