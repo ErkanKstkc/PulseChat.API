@@ -18,7 +18,10 @@ public record RoomDto(
     string? AvatarUrl,
     Guid CreatedBy,
     DateTime CreatedAt,
-    List<RoomMemberDto> Members
+    List<RoomMemberDto> Members,
+    int UnreadCount = 0,
+    string? LastMessage = null,
+    DateTime? LastMessageAt = null
 );
 
 public record MessageDto(

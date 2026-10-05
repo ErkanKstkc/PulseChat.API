@@ -20,23 +20,38 @@ public class GetUserRoomsQueryHandler : IRequestHandler<GetUserRoomsQuery, Resul
     {
         var rooms = await _chatRepository.GetUserRoomsAsync(request.UserId, cancellationToken);
 
-        var result = rooms.Select(r => new RoomDto(
-            r.Id,
-            r.Type,
-            r.Title,
-            r.AvatarUrl,
-            r.CreatedBy,
-            r.CreatedAt,
-            r.Members.Select(m => new RoomMemberDto(
+        var roomDtos = new List<RoomDto>(rooms.Count);
+
+        foreach (var r in rooms)
+        {
+            var userMember = r.Members.FirstOrDefault(m => m.UserId == request.UserId);
+            var lastReadAt = userMember?.LastReadAt;
+            var unreadCount = await _chatRepository.GetUnreadCountAsync(r.Id, request.UserId, lastReadAt, cancellationToken);
+            var latestMessage = await _chatRepository.GetLatestMessageAsync(r.Id, cancellationToken);
+
+            var memberDtos = r.Members.Select(m => new RoomMemberDto(
                 m.UserId,
                 null,
                 null,
                 m.Role,
                 m.JoinedAt,
                 m.LastReadAt
-            )).ToList()
-        )).ToList();
+            )).ToList();
 
-        return Result.Success(result);
+            roomDtos.Add(new RoomDto(
+                r.Id,
+                r.Type,
+                r.Title,
+                r.AvatarUrl,
+                r.CreatedBy,
+                r.CreatedAt,
+                memberDtos,
+                unreadCount,
+                latestMessage?.Content,
+                latestMessage?.CreatedAt
+            ));
+        }
+
+        return Result.Success(roomDtos);
     }
 }

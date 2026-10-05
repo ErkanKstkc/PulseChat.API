@@ -63,6 +63,7 @@ public class ChatHub : Hub
             {
                 UserId = userId,
                 Status = "online",
+                IsOnline = true,
                 Timestamp = DateTime.UtcNow
             });
         }
@@ -85,6 +86,7 @@ public class ChatHub : Hub
                 {
                     UserId = userId,
                     Status = "offline",
+                    IsOnline = false,
                     Timestamp = DateTime.UtcNow
                 });
             }
@@ -194,5 +196,32 @@ public class ChatHub : Hub
                 Username = Context.User?.Identity?.Name
             });
         }
+    }
+
+    public async Task<Result> MarkAsRead(string roomId)
+    {
+        var userId = CurrentUserId;
+        if (userId == Guid.Empty)
+        {
+            return Result.Failure(ErrorCodes.Unauthorized, "Kimlik doğrulaması gereklidir.");
+        }
+
+        var isMember = await _chatRepository.IsUserInRoomAsync(roomId, userId);
+        if (!isMember)
+        {
+            return Result.Failure(ErrorCodes.NotRoomMember, "Bu odaya erişim yetkiniz yok.");
+        }
+
+        var readAt = DateTime.UtcNow;
+        await _chatRepository.UpdateMemberLastReadAsync(roomId, userId, readAt);
+
+        await Clients.OthersInGroup(roomId).SendAsync("MessagesRead", new
+        {
+            RoomId = roomId,
+            UserId = userId,
+            ReadAt = readAt
+        });
+
+        return Result.Success();
     }
 }

@@ -55,11 +55,33 @@ public class MongoChatRepository : IMongoChatRepository
     {
         var filter = Builders<RoomDocument>.Filter.And(
             Builders<RoomDocument>.Filter.Eq(r => r.Id, roomId),
-            Builders<RoomDocument>.Filter.Eq("Members.UserId", userId)
+            Builders<RoomDocument>.Filter.ElemMatch(r => r.Members, m => m.UserId == userId)
         );
 
         var update = Builders<RoomDocument>.Update.Set("Members.$.LastReadAt", lastReadAt);
         await _context.Rooms.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+    }
+
+    public async Task<int> GetUnreadCountAsync(string roomId, Guid userId, DateTime? lastReadAt, CancellationToken cancellationToken = default)
+    {
+        var filterBuilder = Builders<MessageDocument>.Filter;
+        var filter = filterBuilder.Eq(m => m.RoomId, roomId) & filterBuilder.Ne(m => m.SenderId, userId);
+
+        if (lastReadAt.HasValue)
+        {
+            filter &= filterBuilder.Gt(m => m.CreatedAt, lastReadAt.Value);
+        }
+
+        var count = await _context.Messages.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        return (int)count;
+    }
+
+    public async Task<MessageDocument?> GetLatestMessageAsync(string roomId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Messages
+            .Find(m => m.RoomId == roomId)
+            .SortByDescending(m => m.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task SaveMessageAsync(MessageDocument message, CancellationToken cancellationToken = default)

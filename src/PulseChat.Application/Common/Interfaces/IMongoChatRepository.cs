@@ -10,6 +10,8 @@ public interface IMongoChatRepository
     Task<bool> IsUserInRoomAsync(string roomId, Guid userId, CancellationToken cancellationToken = default);
     Task AddMemberToRoomAsync(string roomId, RoomMemberDocument member, CancellationToken cancellationToken = default);
     Task UpdateMemberLastReadAsync(string roomId, Guid userId, DateTime lastReadAt, CancellationToken cancellationToken = default);
+    Task<int> GetUnreadCountAsync(string roomId, Guid userId, DateTime? lastReadAt, CancellationToken cancellationToken = default);
+    Task<MessageDocument?> GetLatestMessageAsync(string roomId, CancellationToken cancellationToken = default);
     Task SaveMessageAsync(MessageDocument message, CancellationToken cancellationToken = default);
     Task<List<MessageDocument>> GetRoomMessagesAsync(string roomId, int limit = 50, DateTime? before = null, CancellationToken cancellationToken = default);
 }

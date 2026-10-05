@@ -37,6 +37,7 @@ public class SwaggerTests
         var doc = swaggerProvider.GetSwagger("v1");
         doc.Should().NotBeNull();
         doc.Paths.Should().ContainKey("/api/Media/upload");
+        doc.Paths.Should().ContainKey("/api/Chat/rooms/{roomId}/read");
 
         using var stringWriter = new StringWriter();
         var openApiWriter = new Microsoft.OpenApi.Writers.OpenApiJsonWriter(stringWriter);

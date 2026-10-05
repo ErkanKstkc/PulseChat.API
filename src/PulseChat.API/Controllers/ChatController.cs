@@ -6,6 +6,7 @@ using PulseChat.Application.Features.Chat.Common;
 using PulseChat.Application.Features.Chat.CreateRoom;
 using PulseChat.Application.Features.Chat.GetMessages;
 using PulseChat.Application.Features.Chat.GetRooms;
+using PulseChat.Application.Features.Chat.MarkAsRead;
 using PulseChat.Domain.Common;
 using PulseChat.Domain.Enums;
 
@@ -89,6 +90,28 @@ public class ChatController : ControllerBase
         if (!result.IsSuccess)
         {
             return StatusCode(StatusCodes.Status403Forbidden, result);
+        }
+        return Ok(result);
+    }
+
+    [HttpPost("rooms/{roomId}/read")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> MarkRoomAsRead(string roomId)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue)
+        {
+            return Unauthorized();
+        }
+
+        var result = await _mediator.Send(new MarkRoomAsReadCommand(roomId, userId.Value));
+        if (!result.IsSuccess)
+        {
+            return result.ErrorCode == ErrorCodes.NotRoomMember
+                ? StatusCode(StatusCodes.Status403Forbidden, result)
+                : BadRequest(result);
         }
         return Ok(result);
     }
